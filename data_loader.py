@@ -7,6 +7,23 @@ from torch.utils.data import DataLoader
 from config import PREVIOUS_FRAMES
 
 class LoadDataShort(Dataset):
+  def stats(self):
+        print("Shape of seeds {}"
+              .format(self.seeds.shape))
+        
+  def __init__(self, seeds, t):
+    self.seeds = seeds
+    self.t = torch.FloatTensor([t])
+    self.stats()
+
+  def __len__(self):
+    return len(self.seeds) # We have only one sample in the dataset
+  
+  def __getitem__(self, idx):
+    seed = torch.FloatTensor(self.seeds[idx])
+    return seed, self.t
+
+'''class LoadDataShort(Dataset):
     def __init__(self, seeds, t):
         self.seeds = torch.from_numpy(seeds) if isinstance(seeds, np.ndarray) else seeds
         self.t = torch.FloatTensor([t])
@@ -15,7 +32,7 @@ class LoadDataShort(Dataset):
         return 1  # We have only one sample in the dataset
     
     def __getitem__(self, idx):
-        return self.seeds, self.t
+        return self.seeds, self.t'''
     
 class LoadData(Dataset):
     '''
@@ -78,26 +95,6 @@ class LoadData(Dataset):
                         "end": torch.FloatTensor(end),
                         "time": torch.FloatTensor([t])
                         })
-                
-        ''' Use this for separate X & Y
-
-        for j in range(data.shape[1]):
-            trajectories = data[:, j, :]
-            num_fm = data.shape[0] - 1
-            # num_fm = 10
-            for i in range(0, num_fm):
-                end = trajectories[i+1, :]
-                t = (i - t_min) / (t_max - t_min) * (maxval - minval) +  minval ## start time       
-                seed_x = trajectories[0, 0]
-                seed_y = trajectories[0, 1]
-                self.data.append({
-                        "start_x": torch.FloatTensor(seed_x),
-                        "start_y": torch.FloatTensor(seed_y),
-                        "end": torch.FloatTensor(end),
-                        "time": torch.FloatTensor([t])
-                        })
-                        
-                        '''
     def __len__(self):
         # print("total data size", len(self.data))
         return len(self.data)
@@ -106,14 +103,8 @@ class LoadData(Dataset):
         np.random.seed(seed = int(time.time() + index))
         data = self.data[index]
         start = data["start"]
-        '''
-        Uncomment for MLP_Short
-        start_x = data["start_x"]
-        start_y = data["start_y"]
-        '''
         end = data["end"]
         t = data["time"]
-        #return start_x, start_y, end, t
         return start, end, t
 
 class LoadData_StartEnd(LoadData):
